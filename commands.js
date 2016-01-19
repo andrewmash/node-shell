@@ -1,106 +1,156 @@
 var fs = require("fs");
+var request = require("request");
 
-var done = function() {
-	process.stdout.write('\nprompt > ');
-};
+var commands = {
 
-var ls = function(file){
-	fs.readdir('.', function(err, files) {
-	  if (err) throw err;
-	  files.forEach(function(file) {
-	    process.stdout.write(file.toString() + "\n");
-	  });
-	done();  
-	});
-};
+	done: function(output, done) {
+		process.stdout.write(output);
+		process.stdout.write('\nprompt > ');
+	},
 
-
-var pwd = function(file) {
-	process.stdout.write(process.env.PWD);
-	done();
-};
-
-var date = function(file){
-	var date = new Date().toString();
-	process.stdout.write(date);
-	done();
-};
-
-var echo = function(args) {
-	args.forEach(function(arg) {
-		if (arg[0] !== "$") process.stdout.write(arg);
-		else process.stdout.write(process.env[arg.slice(1)]);
-		process.stdout.write(" ");
-	});
-	done();
-};
-
-var cat = function(args){
-	args.forEach(function(arg){
-		var fileName = "./" + arg;
-		fs.readFile(fileName, function(error, contents){
-			if(error) throw error;
-			process.stdout.write(contents);
-			done();
+	ls: function(file, done){
+		var output = "";
+		fs.readdir('.', function(err, files) {
+		  if (err) throw err;
+		  files.forEach(function(file) {
+		  	output += file.toString() + "\n";
+		  });
+		done(output);  
 		});
-	});
-	
-};
+	},
 
-var head = function(args){
-	args.forEach(function(arg){
-		var fileName = "./" + arg;
+
+	pwd: function(file, done) {
+		var output = "";
+		output += process.env.PWD;
+		done(output);
+	},
+
+	date: function(file, done){
+		var output = "";
+		var date = new Date().toString();
+		output += date;
+		done(output);
+	},
+
+	echo: function(args, done) {
+		var output = "";
+		args.forEach(function(arg) {
+			if (arg[0] !== "$") output += arg;
+			else output += process.env[arg.slice(1)];
+			output += " ";
+		});
+		done(output);
+	},
+
+	cat: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			var fileName = "./" + arg;
+			fs.readFile(fileName, "utf-8", function(error, contents){
+				if(error) throw error;
+				output += contents;
+				done(output);
+			});
+		});
+		
+	},
+
+	head: function(arg, done){
+		var output = "";
+		var fileName = "./" + arg[0];
 		fs.readFile(fileName, "utf-8", function(error, contents){
 			if(error) throw error;
 			var fileContents = contents.split("\n");
-			process.stdout.write(fileContents.slice(0,5).join("\n"));
-			done();
+			output += fileContents.slice(0,5).join("\n");
+			done(output);
 		});
-	});
-};
+	},
 
-var tail = function(args){
-	// args.forEach(function(arg){
-	// 	var fileName = "./" + arg;
-	// 	fs.readFile(fileName, "utf-8", function(error, contents){
-	// 		if(error) throw error;
-	// 		var fileContents = contents.split("\n");
-	// 		process.stdout.write(fileContents.slice(-5).join("\n"));
-	// 		done();
+	tail: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			var fileName = "./" + arg;
+			fs.readFile(fileName, "utf-8", function(error, contents){
+				if(error) throw error;
+				var fileContents = contents.split("\n");
+				output += fileContents.slice(-5).join("\n");
+				done(output);
+			});
+		});
+	},
+
+	// var getLines = function(args) {
+	// 	var output = [];
+	// 	args.forEach(function(arg) {
+	// 		var fileName = "./" + arg;
+	// 		fs.readFile(fileName, "utf-8", function(error, contents) {
+	// 			if (error) throw error;
+	// 			var fileContents = contents.split("\n");
+	// 			output.push(fileContents);
+	// 			if (output.length === args.length) {
+	// 				console.log("made it");
+	// 				return output;
+	// 			}
+	// 		});
 	// 	});
-	// });
-	var fileContents = getLines(args);
-	fileContents.forEach(function(splitFile) {
-		process.stdout.write(splitFile.slice(0, 5).join("\n"));
-	});
-	done();
-};
+	// };
 
-var getLines = function(args) {
-	var output = [];
-	args.forEach(function(arg) {
-		var fileName = "./" + arg;
-		fs.readFile(fileName, "utf-8", function(error, contents) {
-			if (error) throw error;
-			var fileContents = contents.split("\n");
-			output.push(fileContents);
+	sort: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			var fileName = "./" + arg;
+			fs.readFile(fileName, "utf-8", function(error, contents){
+				if(error) throw error;
+				var fileContents = contents.split("\n");
+				fileContents.sort();
+				output += fileContents.join("\n");
+				done(output);
+			});
 		});
-	});
-	while (output.length < args.length) {}
-	return output;
+	},
+
+	wc: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			var fileName = "./" + arg;
+			fs.readFile(fileName, "utf-8", function(error, contents){
+				if(error) throw error;
+				var fileContents = contents.split("\n");
+				output += fileContents.length + "";
+				done(output);
+			});
+		});
+	},
+
+	uniq: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			var fileName = "./" + arg;
+			fs.readFile(fileName, "utf-8", function(error, contents){
+				if(error) throw error;
+				var fileContents = contents.split("\n");
+				fileContents.forEach(function(line, index) {
+					if (index > 0 && line === fileContents[index - 1]) {
+						fileContents[index] = "";
+					}
+				});
+				output += fileContents.join("\n");
+				done(output);
+			});
+		});
+	},
+
+	curl: function(args, done){
+		var output = "";
+		args.forEach(function(arg){
+			request(arg, function(error, response, body) {
+				if(!error && response.statusCode === 200)
+					output += body;
+			});
+			done(output);
+		});
+	}
 };
 
-var sort = function(args){
-
-};
-
-exports.echo = echo;
-exports.pwd = pwd;
-exports.date = date;
-exports.ls = ls;
-exports.cat = cat;
-exports.head = head;
-exports.tail = tail;
-// exports.sort = sort;
-// exports.wc = wc;
-// exports.uniq = uniq;
+exports.commands = commands;
