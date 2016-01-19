@@ -15,7 +15,8 @@ var commands = {
 		  files.forEach(function(file) {
 		  	output += file.toString() + "\n";
 		  });
-		done(output);  
+		done(output);
+		return output;  
 		});
 	},
 
@@ -24,6 +25,7 @@ var commands = {
 		var output = "";
 		output += process.env.PWD;
 		done(output);
+		return output;
 	},
 
 	date: function(file, done){
@@ -31,6 +33,7 @@ var commands = {
 		var date = new Date().toString();
 		output += date;
 		done(output);
+		return output;
 	},
 
 	echo: function(args, done) {
@@ -41,6 +44,7 @@ var commands = {
 			output += " ";
 		});
 		done(output);
+		return output;
 	},
 
 	cat: function(args, done){
@@ -51,6 +55,7 @@ var commands = {
 				if(error) throw error;
 				output += contents;
 				done(output);
+				return output;
 			});
 		});
 		
@@ -64,6 +69,7 @@ var commands = {
 			var fileContents = contents.split("\n");
 			output += fileContents.slice(0,5).join("\n");
 			done(output);
+			return output;
 		});
 	},
 
@@ -76,6 +82,7 @@ var commands = {
 				var fileContents = contents.split("\n");
 				output += fileContents.slice(-5).join("\n");
 				done(output);
+				return output;
 			});
 		});
 	},
@@ -106,6 +113,7 @@ var commands = {
 				fileContents.sort();
 				output += fileContents.join("\n");
 				done(output);
+				return output;
 			});
 		});
 	},
@@ -119,6 +127,7 @@ var commands = {
 				var fileContents = contents.split("\n");
 				output += fileContents.length + "";
 				done(output);
+				return output;
 			});
 		});
 	},
@@ -137,6 +146,7 @@ var commands = {
 				});
 				output += fileContents.join("\n");
 				done(output);
+				return output;
 			});
 		});
 	},
@@ -149,6 +159,7 @@ var commands = {
 					output += body;
 			});
 			done(output);
+			return output;
 		});
 	}
 };
